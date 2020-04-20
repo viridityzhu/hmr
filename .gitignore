@@ -3,4 +3,5 @@ logs*/
 *.json
 *.DS_Store
 *.pyc
+*.obj
 forrelease.sh
