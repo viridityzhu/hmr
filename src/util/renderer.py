@@ -12,6 +12,9 @@ import cv2
 from opendr.camera import ProjectPoints
 from opendr.renderer import ColoredRenderer
 from opendr.lighting import LambertianPointLight
+import open3d as o3d
+from src.tf_smpl import projection as proj_util
+from PIL import Image
 
 colors = {
     # colorbline/print/copy safe:
@@ -223,7 +226,26 @@ def render_model(verts,
         color = color_list[color_id % len(color_list)]
 
     imtmp = simple_renderer(rn, verts, faces, color=color)
-
+    '''
+    if img is not None and do_alpha:
+        w, h, _ = img.shape
+        # Project to 2D!
+        print(verts.shape)
+        verts_2d = proj_util.batch_orth_proj_idrot(verts, cam)
+        img_copy = img.copy()
+        obj_mesh_name = './out.obj'
+        with open(obj_mesh_name, 'w') as fp:
+            for v in verts_2d:
+                x = int(round( (v[1]+1)*0.5*w ))
+                y = int(round( (v[0]+1)*0.5*h ))
+                c = img[x, y, :]/255
+                img_copy[x,y,:] = 128
+                fp.write( 'v %f %f %f\n' % ( v[0], v[1], v[2]) )
+            for f in faces: # Faces are 1-based, not 0-based in obj files
+                fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
+        img_copy = Image.fromarray(img_copy, 'RGB')
+        img_copy.save('input.png')
+        '''
     # If white bg, make transparent.
     if img is None and do_alpha:
         imtmp = get_alpha(imtmp)

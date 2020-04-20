@@ -29,6 +29,7 @@ import tensorflow as tf
 from PIL import Image
 from src.util import renderer as vis_util
 from src.util import image as img_util
+from src.tf_smpl import projection as proj_util
 from src.util import openpose as op_util
 import src.config
 from src.RunModel import RunModel
@@ -49,6 +50,7 @@ def visualize(img, proc_param, joints, verts, cam):
     # Render results
     skel_img = vis_util.draw_skeleton(img, joints_orig)
     rend_img_overlay = renderer(
+        #vert_shifted, cam=None, img=img, do_alpha=True)
         vert_shifted, cam=cam_for_render, img=img, do_alpha=True)
     rend_img = renderer(
         vert_shifted, cam=cam_for_render, img_size=img.shape[:2])
@@ -136,18 +138,45 @@ def main(img_path, json_path=None):
     # shape is 10D shape coefficients of SMPL
     joints, verts, cams, joints3d, theta = model.predict(
         input_img, get_theta=True)
-    save_mesh(verts)
+    # scaling and translation
+    save_mesh(img, proc_param, joints[0], verts[0], cams[0])
     visualize(img, proc_param, joints[0], verts[0], cams[0])
 
-def save_mesh(verts):
+def save_mesh(img, proc_param, joints, verts, cam):
+    #cam_for_render, vert_shifted, joints_orig = vis_util.get_original(
+    #    proc_param, verts, cam, joints, img_size=img.shape[:2])
+    cam_for_render, vert_shifted = cam, verts
+    print(proc_param)
+    print(vert_shifted)
+    camera  = np.reshape(cam_for_render, [1,3])
+    w, h, _ = img.shape
+    imgsize = max(w,h)
+    # project to 2D
+    vert_shifted = vert_shifted[:, :2] + camera[:, 1:]
+    vert_shifted = vert_shifted * camera[0,0]
+    print(vert_shifted)
+    img_copy = img.copy()
     face_path = './src/tf_smpl/smpl_faces.npy'
     faces = np.load(face_path)
     obj_mesh_name = './test.obj'
     with open(obj_mesh_name, 'w') as fp:
-        for v in verts[0]:
-            fp.write( 'v %f %f %f\n' % ( v[0], v[1], v[2]) )
-        for f in faces: # Faces are 1-based, not 0-based in obj files
-            fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
+        for i in range(vert_shifted.shape[0]):
+            v = vert_shifted[i,:]
+            #print(v)
+            x = int(round( (v[1]+1)*0.5*imgsize ))
+            y = int(round( (v[0]+1)*0.5*imgsize ))
+            if w<h:
+                x = int(round(x -h/2 + w/2))
+            else:
+                y = int(round(y - w/2 + h/2))
+            #print(x,y)
+            c = img[x, y, :]/255
+            img_copy[x,y,:] = 0
+            #fp.write( 'v %f %f %f %f %f %f\n' % ( v[0], v[1], v[2], c[0], c[1], c[2]) )
+        #for f in faces: # Faces are 1-based, not 0-based in obj files
+            #fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
+    img_copy = Image.fromarray(img_copy, 'RGB')
+    img_copy.save('input.png')
 
 if __name__ == '__main__':
     config = flags.FLAGS
