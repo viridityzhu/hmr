@@ -1,0 +1,10 @@
+models/
+logs*/
+*.json
+*.DS_Store
+*.pyc
+*.obj
+*.gz
+*.tar.gz
+*.tar
+forrelease.sh
