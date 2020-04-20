@@ -136,9 +136,18 @@ def main(img_path, json_path=None):
     # shape is 10D shape coefficients of SMPL
     joints, verts, cams, joints3d, theta = model.predict(
         input_img, get_theta=True)
-
+    save_mesh(verts)
     visualize(img, proc_param, joints[0], verts[0], cams[0])
 
+def save_mesh(verts):
+    face_path = './src/tf_smpl/smpl_faces.npy'
+    faces = np.load(face_path)
+    obj_mesh_name = './test.obj'
+    with open(obj_mesh_name, 'w') as fp:
+        for v in verts[0]:
+            fp.write( 'v %f %f %f\n' % ( v[0], v[1], v[2]) )
+        for f in faces: # Faces are 1-based, not 0-based in obj files
+            fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
 
 if __name__ == '__main__':
     config = flags.FLAGS
