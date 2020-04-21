@@ -143,8 +143,8 @@ def main(img_path, json_path=None):
     visualize(img, proc_param, joints[0], verts[0], cams[0])
 
 def save_mesh(img, proc_param, joints, verts, cam):
-    #cam_for_render, vert_shifted, joints_orig = vis_util.get_original(
-    #    proc_param, verts, cam, joints, img_size=img.shape[:2])
+    cam_for_render, vert_3d, joints_orig = vis_util.get_original(
+        proc_param, verts, cam, joints, img_size=img.shape[:2])
     cam_for_render, vert_shifted = cam, verts
     print(proc_param)
     print(vert_shifted)
@@ -152,29 +152,28 @@ def save_mesh(img, proc_param, joints, verts, cam):
     w, h, _ = img.shape
     imgsize = max(w,h)
     # project to 2D
-    vert_shifted = vert_shifted[:, :2] + camera[:, 1:]
-    vert_shifted = vert_shifted * camera[0,0]
-    print(vert_shifted)
+    vert_2d = verts[:, :2] + camera[:, 1:]
+    vert_2d = vert_2d * camera[0,0]
     img_copy = img.copy()
     face_path = './src/tf_smpl/smpl_faces.npy'
     faces = np.load(face_path)
     obj_mesh_name = './test.obj'
     with open(obj_mesh_name, 'w') as fp:
-        for i in range(vert_shifted.shape[0]):
-            v = vert_shifted[i,:]
-            #print(v)
-            x = int(round( (v[1]+1)*0.5*imgsize ))
-            y = int(round( (v[0]+1)*0.5*imgsize ))
+        for i in range(vert_2d.shape[0]):
+            v2 = vert_2d[i,:]
+            v3 = vert_3d[i,:]
+            x = int(round( (v2[1]+1)*0.5*imgsize ))
+            y = int(round( (v2[0]+1)*0.5*imgsize ))
             if w<h:
                 x = int(round(x -h/2 + w/2))
             else:
                 y = int(round(y - w/2 + h/2))
-            #print(x,y)
-            c = img[x, y, :]/255
+            c = img[x, y, :]/255.0
+            #c = [0.5,0.5,0.5]
             img_copy[x,y,:] = 0
-            #fp.write( 'v %f %f %f %f %f %f\n' % ( v[0], v[1], v[2], c[0], c[1], c[2]) )
-        #for f in faces: # Faces are 1-based, not 0-based in obj files
-            #fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
+            fp.write( 'v %f %f %f %f %f %f\n' % ( v3[0], v3[1], v3[2], c[0], c[1], c[2]) )
+        for f in faces: # Faces are 1-based, not 0-based in obj files
+            fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
     img_copy = Image.fromarray(img_copy, 'RGB')
     img_copy.save('input.png')
 
