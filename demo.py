@@ -158,19 +158,43 @@ def save_mesh(img, proc_param, joints, verts, cam):
     face_path = './src/tf_smpl/smpl_faces.npy'
     faces = np.load(face_path)
     obj_mesh_name = './test.obj'
+    foreground_index_2d = np.zeros((w,h))+99999
+    foreground_value_2d = np.zeros((w,h))+99999
     with open(obj_mesh_name, 'w') as fp:
+        # Decide Forground
         for i in range(vert_2d.shape[0]):
             v2 = vert_2d[i,:]
             v3 = vert_3d[i,:]
+            z = v3[2]
             x = int(round( (v2[1]+1)*0.5*imgsize ))
             y = int(round( (v2[0]+1)*0.5*imgsize ))
             if w<h:
                 x = int(round(x -h/2 + w/2))
             else:
                 y = int(round(y - w/2 + h/2))
-            c = img[x, y, :]/255.0
-            #c = [0.5,0.5,0.5]
-            img_copy[x,y,:] = 0
+            x = max(0, min(x, w-1))
+            y = max(0, min(y, h-1))
+            if z < foreground_value_2d[x,y]:
+                foreground_index_2d[x,y] = i
+                foreground_value_2d[x,y] = z
+        # Draw Color
+        for i in range(vert_2d.shape[0]):
+            v2 = vert_2d[i,:]
+            v3 = vert_3d[i,:]
+            z = v3[2]
+            x = int(round( (v2[1]+1)*0.5*imgsize ))
+            y = int(round( (v2[0]+1)*0.5*imgsize ))
+            if w<h:
+                x = int(round(x -h/2 + w/2))
+            else:
+                y = int(round(y - w/2 + h/2))
+            x = max(0, min(x, w-1))
+            y = max(0, min(y, h-1))
+            if i == foreground_index_2d[x,y]: 
+                c = img[x, y, :]/255.0
+                img_copy[x,y,:] = 0
+            else:
+                c = [1,1,1] 
             fp.write( 'v %f %f %f %f %f %f\n' % ( v3[0], v3[1], v3[2], c[0], c[1], c[2]) )
         for f in faces: # Faces are 1-based, not 0-based in obj files
             fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
