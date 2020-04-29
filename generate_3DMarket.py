@@ -9,8 +9,8 @@ Alternatively, you can supply output of the openpose to figure out the bbox and 
 Sample usage:
 
 # On images on a tightly cropped image around the person
-python -m demo --img_path data/im1963.jpg
-python -m demo --img_path data/coco1.png
+python -m generate_3DMarket --market_path ../Market/pytorch/
+python -m generate_3DMarket --market_path ../Duke/pytorch/
 
 # On images, with openpose output
 python -m demo --img_path data/random.jpg --json_path data/random_keypoints.json
@@ -35,7 +35,7 @@ from src.util import openpose as op_util
 import src.config
 from src.RunModel import RunModel
 
-flags.DEFINE_string('img_path', 'data/im1963.jpg', 'Image to run')
+flags.DEFINE_string('market_path', '../Market/pytorch/', 'Image to run')
 flags.DEFINE_string(
     'json_path', None,
     'If specified, uses the openpose output to crop the image.')
@@ -47,7 +47,7 @@ def visualize(img, proc_param, joints, verts, cam):
     """
     cam_for_render, vert_shifted, joints_orig = vis_util.get_original(
         proc_param, verts, cam, joints, img_size=img.shape[:2])
-
+    #visualize(img, proc_param, joints[0], verts[0], cams[0])
     # Render results
     skel_img = vis_util.draw_skeleton(img, joints_orig)
     rend_img_overlay = renderer(
@@ -125,25 +125,31 @@ def preprocess_image(img_path, json_path=None):
     return crop, proc_param, img
 
 
-def main(img_path, json_path=None):
+def main(dir_path, json_path=None):
+    if not os.path.exists('../3D-Person-reID/3DMarket'):
+        os.mkdir('../3D-Person-reID/3DMarket')
     sess = tf.Session()
     model = RunModel(config, sess=sess)
+    for split in ['train', 'train_all', 'val', 'gallery', 'query']:
+        for root, dirs, files in os.walk(dir_path+split, topdown=True):
+            for img_path in files:
+                if not img_path[-3:]=='jpg':
+                    continue 
+                img_path = root +'/' + img_path
+                print(img_path)
+                input_img, proc_param, img = preprocess_image(img_path, json_path)
+                input_img = np.expand_dims(input_img, 0)
 
-    input_img, proc_param, img = preprocess_image(img_path, json_path)
-    # Add batch dimension: 1 x D x D x 3
-    input_img = np.expand_dims(input_img, 0)
+                # Theta is the 85D vector holding [camera, pose, shape]
+                # where camera is 3D [s, tx, ty]
+                # pose is 72D vector holding the rotation of 24 joints of SMPL in axis angle format
+                # shape is 10D shape coefficients of SMPL
+                joints, verts, cams, joints3d, theta = model.predict(
+                    input_img, get_theta=True)
+                # scaling and translation
+                save_mesh(img, img_path, split, proc_param, joints[0], verts[0], cams[0])
 
-    # Theta is the 85D vector holding [camera, pose, shape]
-    # where camera is 3D [s, tx, ty]
-    # pose is 72D vector holding the rotation of 24 joints of SMPL in axis angle format
-    # shape is 10D shape coefficients of SMPL
-    joints, verts, cams, joints3d, theta = model.predict(
-        input_img, get_theta=True)
-    # scaling and translation
-    save_mesh(img, img_path, proc_param, joints[0], verts[0], cams[0])
-    visualize(img, proc_param, joints[0], verts[0], cams[0])
-
-def save_mesh(img, img_path, proc_param, joints, verts, cam):
+def save_mesh(img, img_path, split, proc_param, joints, verts, cam):
     cam_for_render, vert_3d, joints_orig = vis_util.get_original(
         proc_param, verts, cam, joints, img_size=img.shape[:2])
     cam_for_render, vert_shifted = cam, verts
@@ -158,7 +164,12 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
     img_copy = img.copy()
     face_path = './src/tf_smpl/smpl_faces.npy'
     faces = np.load(face_path)
-    obj_mesh_name = 'test.obj'
+    obj_mesh_name = '../3D-Person-reID/3DMarket/%s/%s/%s.obj'%( split, os.path.basename(os.path.dirname(img_path)), os.path.basename(img_path) )
+    store_dir = os.path.dirname(obj_mesh_name)
+    if not os.path.exists(os.path.dirname(store_dir)):
+        os.mkdir(os.path.dirname(store_dir))
+    if not os.path.exists(store_dir):
+        os.mkdir(store_dir)
     foreground_index_2d = np.zeros((w,h))+99999
     foreground_value_2d = np.zeros((w,h))+99999
     with open(obj_mesh_name, 'w') as fp:
@@ -199,8 +210,8 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
             fp.write( 'v %f %f %f %f %f %f\n' % ( v3[0], v3[1], v3[2], c[0], c[1], c[2]) )
         for f in faces: # Faces are 1-based, not 0-based in obj files
             fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
-    img_copy = Image.fromarray(img_copy, 'RGB')
-    img_copy.save('input.png')
+    #img_copy = Image.fromarray(img_copy, 'RGB')
+    #img_copy.save('input.png')
 
 if __name__ == '__main__':
     config = flags.FLAGS
@@ -212,4 +223,4 @@ if __name__ == '__main__':
 
     renderer = vis_util.SMPLRenderer(face_path=config.smpl_face_path)
 
-    main(config.img_path, config.json_path)
+    main(config.market_path, config.json_path)
