@@ -23,12 +23,15 @@ pip install -r requirements.txt
 Conda can install cuda-8.0 toolkit
 With GPU:
 ```
-conda install tensorflow-gpu==1.3.0
+conda install tensorflow-gpu==1.11.0
+pip instal open3d 
 ```
 Without GPU:
 ```
-conda install tensorflow==1.3.0
+conda install tensorflow==1.11.0
+pip instal open3d 
 ```
+
 
 ### Demo
 

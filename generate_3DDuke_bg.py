@@ -35,7 +35,7 @@ from src.util import openpose as op_util
 import src.config
 from src.RunModel import RunModel
 
-flags.DEFINE_string('market_path', '../Market/pytorch/', 'Image to run')
+flags.DEFINE_string('market_path', '../Duke/pytorch/', 'Image to run')
 flags.DEFINE_string(
     'json_path', None,
     'If specified, uses the openpose output to crop the image.')
@@ -126,8 +126,8 @@ def preprocess_image(img_path, json_path=None):
 
 
 def main(dir_path, json_path=None):
-    if not os.path.exists('../3D-Person-reID/3DMarket+bg'):
-        os.mkdir('../3D-Person-reID/3DMarket+bg')
+    if not os.path.exists('../3D-Person-reID/3DDuke+bg'):
+        os.mkdir('../3D-Person-reID/3DDuke+bg')
     sess = tf.Session()
     model = RunModel(config, sess=sess)
     for split in ['train', 'train_all', 'val', 'gallery', 'query']:
@@ -164,7 +164,7 @@ def save_mesh(img, img_path, split, proc_param, joints, verts, cam):
     img_copy = img.copy()
     face_path = './src/tf_smpl/smpl_faces.npy'
     faces = np.load(face_path)
-    obj_mesh_name = '../3D-Person-reID/3DMarket+bg/%s/%s/%s.obj'%( split, os.path.basename(os.path.dirname(img_path)), os.path.basename(img_path) )
+    obj_mesh_name = '../3D-Person-reID/3DDuke+bg/%s/%s/%s.obj'%( split, os.path.basename(os.path.dirname(img_path)), os.path.basename(img_path) )
     store_dir = os.path.dirname(obj_mesh_name)
     if not os.path.exists(os.path.dirname(store_dir)):
         os.mkdir(os.path.dirname(store_dir))
