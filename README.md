@@ -31,6 +31,18 @@ conda install tensorflow==1.11.0
 pip instal open3d 
 ```
 
+### Generate Market / Duke / MSMT
+Please check the datapath before generation.
+```
+python generate_3DMarket_bg.py
+python generate_3DDuke_bg.py
+python generate_3DMSMT_bg.py
+```
+
+baseline without background
+```
+python generate_3DMarket.py
+```
 
 ### Demo
 
