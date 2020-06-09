@@ -54,7 +54,7 @@ python demo_bg.py --img_path ../Market/pytorch/gallery/1026/1026_c1s6_038571_06.
 ```
 The output 3D data is `test.obj`. You could use `open3d` to visualize it. 
 If you has one MacBook, you could visualize the `test.obj` in the folder. 
-
+![](https://github.com/layumi/hmr/blob/master/hmr.png)
 
 ### Demo
 
