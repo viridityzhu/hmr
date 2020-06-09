@@ -33,16 +33,25 @@ pip instal open3d
 
 ### Generate Market / Duke / MSMT
 Please check the datapath before generation.
-```
+```bash
 python generate_3DMarket_bg.py
 python generate_3DDuke_bg.py
 python generate_3DMSMT_bg.py
 ```
 
 baseline without background
-```
+```bash
 python generate_3DMarket.py
 ```
+
+By defualt, I removed mesh information for fast data loading. 
+If you want to preserve the mesh and visualize the 3D data, you could use the 
+```bash
+python demo_bg.py --img_path ../Market/pytorch/gallery/1026/1026_c1s6_038571_06.jpg
+```
+The output 3D data is `test.obj`. You could use `open3d` to visualize it. 
+If you has one MacBook, you could visualize the `test.obj` in the folder. 
+
 
 ### Demo
 
