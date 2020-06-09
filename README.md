@@ -1,10 +1,11 @@
 # End-to-end Recovery of Human Shape and Pose
 
+I modified code from https://github.com/akanazawa/hmr . I added 2D-to-3D mapping.
 Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik
 CVPR 2018
 
 [Project Page](https://akanazawa.github.io/hmr/)
-![Teaser Image](https://akanazawa.github.io/hmr/resources/images/teaser.png)
+![Teaser Image](https://github.com/layumi/hmr/blob/master/demo.jpg)
 
 ### Requirements
 - Python 2.7
