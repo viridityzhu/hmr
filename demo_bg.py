@@ -24,6 +24,7 @@ from absl import flags
 import numpy as np
 
 import skimage.io as io
+from skimage.transform import resize
 import tensorflow as tf
 import os
 
@@ -35,11 +36,12 @@ from src.util import openpose as op_util
 import src.config
 from src.RunModel import RunModel
 
-flags.DEFINE_string('img_path', 'data/im1963.jpg', 'Image to run')
+flags.DEFINE_string('img_path', '../3D-Person-reID/2DMarket/query/0001/0001_c1s1_001051_00.jpg', 'Image to run')
 flags.DEFINE_string(
     'json_path', None,
     'If specified, uses the openpose output to crop the image.')
 
+percent = 1.0
 
 def visualize(img, proc_param, joints, verts, cam):
     """
@@ -100,7 +102,12 @@ def visualize(img, proc_param, joints, verts, cam):
 
 
 def preprocess_image(img_path, json_path=None, fliplr=False):
-    img = io.imread(img_path)
+    #img = io.imread(img_path)
+    #img = Image.fromarray(img)
+    img = Image.open(img_path) 
+    img = img.resize((64,128))
+    img = np.array(img)
+    #img = resize(img, (128 , 64))
     if img.shape[2] == 4:
         img = img[:, :, :3]
 
@@ -166,7 +173,7 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
     img_copy = img.copy()
     face_path = './src/tf_smpl/smpl_faces.npy'
     faces = np.load(face_path)
-    obj_mesh_name = 'test.obj'
+    obj_mesh_name = 'demo/%s.obj'%os.path.basename(img_path)
     foreground_index_2d = np.zeros((w,h))+99999
     foreground_value_2d = np.zeros((w,h))+99999
     background = np.zeros((w,h))
@@ -205,6 +212,8 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
                          foreground_value_2d[i,j-1] = 999999
                          print('find you')
         # Draw Color
+        count = 0
+        in_selected = np.linspace(0, 128*64-1, num= round(128*64*percent), dtype=int)
         for i in range(vert_2d.shape[0]):
             v2 = vert_2d[i,:]
             v3 = verts[i,:]
@@ -220,9 +229,13 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
             if i == foreground_index_2d[x,y]: 
                 c = img[x, y, :]/255.0
                 img_copy[x,y,:] = 0
+                count +=1
+                if not count in in_selected:
+                    c = [1,1,1]
             else:
                 c = [1,1,1] 
             fp.write( 'v %f %f %f %f %f %f\n' % ( v3[0], v3[1], v3[2], c[0], c[1], c[2]) )
+        print(count)
         # 2D to 3D mapping
         for i in range(w):
             for j in range(h):
@@ -242,13 +255,15 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
                 vx -= camera[:, 2]
                 vz = np.mean(verts[:,2])
                 c = img[i,j,:]/255.0
+                if not count in in_selected: 
+                    c = [1,1,1]
                 fp.write( 'v %f %f %f %f %f %f\n' % ( vy, vx, vz, c[0], c[1], c[2]) )
+                count +=1
                 background[i,j] = index
                 index +=1
 
         for f in faces: # Faces are 1-based, not 0-based in obj files
             fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
-        count = 0
         for i in range(1,w):
             for j in range(1,h): 
                 fp.write( 'f %d %d %d %d\n' % (background[i,j], background[i-1,j] ,background[i,j-1] , background[i-1, j-1]))

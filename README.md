@@ -15,12 +15,11 @@ CVPR 2018
 #### Setup virtualenv
 ```
 conda create --name hmr python=2.7
-source activate hmr
+conda activate hmr
 pip install numpy
 pip install -r requirements.txt
 ```
 #### Install TensorFlow
-Conda can install cuda-8.0 toolkit
 With GPU:
 ```
 conda install tensorflow-gpu==1.11.0
