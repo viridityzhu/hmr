@@ -1,10 +1,13 @@
 # End-to-end Recovery of Human Shape and Pose
 
+I modified code from https://github.com/akanazawa/hmr . I added 2D-to-3D mapping.
+
+
 Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik
 CVPR 2018
 
 [Project Page](https://akanazawa.github.io/hmr/)
-![Teaser Image](https://akanazawa.github.io/hmr/resources/images/teaser.png)
+![Teaser Image](https://github.com/layumi/hmr/blob/master/demo.jpg)
 
 ### Requirements
 - Python 2.7
@@ -15,12 +18,11 @@ CVPR 2018
 #### Setup virtualenv
 ```
 conda create --name hmr python=2.7
-source activate hmr
+conda activate hmr
 pip install numpy
 pip install -r requirements.txt
 ```
 #### Install TensorFlow
-Conda can install cuda-8.0 toolkit
 With GPU:
 ```
 conda install tensorflow-gpu==1.11.0
@@ -32,6 +34,27 @@ conda install tensorflow==1.11.0
 pip instal open3d 
 ```
 
+### Generate Market / Duke / MSMT
+Please check the datapath before generation.
+```bash
+python generate_3DMarket_bg.py
+python generate_3DDuke_bg.py
+python generate_3DMSMT_bg.py
+```
+
+baseline without background
+```bash
+python generate_3DMarket.py
+```
+
+By defualt, I removed mesh information for fast data loading. 
+If you want to preserve the mesh and visualize the 3D data, you could use the 
+```bash
+python demo_bg.py --img_path ../Market/pytorch/gallery/1026/1026_c1s6_038571_06.jpg
+```
+The output 3D data is `test.obj`. You could use `open3d` to visualize it. 
+If you has one MacBook, you could visualize the `test.obj` in the folder. 
+![](https://github.com/layumi/hmr/blob/master/hmr.png)
 
 ### Demo
 
