@@ -104,7 +104,7 @@ def preprocess_image(img_path, json_path=None):
     #img = io.imread(img_path)
     #img = Image.fromarray(img)
     img = Image.open(img_path)
-    img = img.resize((64,128))
+    img = img.resize((128,256))
     img = np.array(img)
     #img = resize(img, (128 , 64))
     if img.shape[2] == 4:
@@ -137,7 +137,7 @@ def main(dir_path, json_path=None):
     sess = tf.Session()
     model = RunModel(config, sess=sess)
     #for split in ['train', 'train_all', 'val', 'gallery', 'query']:
-    for split in ['gallery', 'query']:
+    for split in ['gallery']:
         for root, dirs, files in os.walk(dir_path+split, topdown=True):
             for img_path in files:
                 if not img_path[-3:]=='jpg':
