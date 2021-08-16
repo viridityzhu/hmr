@@ -1,6 +1,6 @@
 # End-to-end Recovery of Human Shape and Pose
 
-I modified code from https://github.com/akanazawa/hmr . I added 2D-to-3D mapping.
+I modified code from https://github.com/akanazawa/hmr . I added 2D-to-3D color mapping for my human matching paper at [Here](arxiv.org/abs/2006.04569), and you are welcomed to check out it.  
 
 
 Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik
