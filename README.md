@@ -1,10 +1,14 @@
 # End-to-end Recovery of Human Shape and Pose
 
-I modified code from https://github.com/akanazawa/hmr . I added 2D-to-3D color mapping for my human matching paper at [Here](arxiv.org/abs/2006.04569), and you are welcomed to check out it.  
+I modified code from https://github.com/akanazawa/hmr . I added 2D-to-3D color mapping for my human matching paper at [Here](https://arxiv.org/abs/2006.04569), and you are welcomed to check out them.  
 
+The original paper is 
 
-Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik
-CVPR 2018
+Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik 'End-to-end Recovery of Human Shape and Pose' CVPR 2018
+
+and my paper is
+
+Zhedong Zheng, Nenggan Zheng and Yi Yang 'Parameter-Efficient Person Re-identification in the 3D Space' ArXiv 2021
 
 [Project Page](https://akanazawa.github.io/hmr/)
 ![Teaser Image](https://github.com/layumi/hmr/blob/master/demo.png)
