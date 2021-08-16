@@ -7,7 +7,7 @@ Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik
 CVPR 2018
 
 [Project Page](https://akanazawa.github.io/hmr/)
-![Teaser Image](https://github.com/layumi/hmr/blob/master/demo.jpg)
+![Teaser Image](https://github.com/layumi/hmr/blob/master/demo.png)
 
 ### Requirements
 - Python 2.7
