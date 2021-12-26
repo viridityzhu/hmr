@@ -8,7 +8,7 @@ If you want to preserve the mesh and visualize the 3D data, you could use the
 python demo_bg.py --img_path ../Market/pytorch/gallery/1026/1026_c1s6_038571_06.jpg #please change to your image path
 ```
 The output 3D data is `test.obj`. You could use `open3d` to visualize it.
-If you has one MacBook, you could visualize the `1026_c1s6_038571_06.jpg.obj` in the folder.
+If you has one MacBook, you could visualize the `test.obj` in the folder.
 ![](https://github.com/layumi/hmr/blob/master/hmr.png)
 
 The original paper is 
