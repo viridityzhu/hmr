@@ -215,6 +215,7 @@ def save_mesh(img, img_path, split, proc_param, joints, verts, cam):
             fp.write( 'v %f %f %f %f %f %f\n' % ( v3[0], v3[1], v3[2], c[0], c[1], c[2]) )
         for f in faces: # Faces are 1-based, not 0-based in obj files
             fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
+            break  # skip for small file
     #img_copy = Image.fromarray(img_copy, 'RGB')
     #img_copy.save('input.png')
 

@@ -26,7 +26,7 @@ import numpy as np
 import skimage.io as io
 import tensorflow as tf
 import os
-
+import time
 from PIL import Image
 from src.util import renderer as vis_util
 from src.util import image as img_util
@@ -130,6 +130,9 @@ def main(dir_path, json_path=None):
         os.mkdir('../3D-Person-reID/3DMarket+bg')
     sess = tf.Session()
     model = RunModel(config, sess=sess)
+    face_path = './src/tf_smpl/smpl_faces.npy'
+    faces = np.load(face_path)
+    count = 0 
     for split in ['train', 'train_all', 'val', 'gallery', 'query']:
         for root, dirs, files in os.walk(dir_path+split, topdown=True):
             for img_path in files:
@@ -144,12 +147,16 @@ def main(dir_path, json_path=None):
                 # where camera is 3D [s, tx, ty]
                 # pose is 72D vector holding the rotation of 24 joints of SMPL in axis angle format
                 # shape is 10D shape coefficients of SMPL
+                since = time.time()
                 joints, verts, cams, joints3d, theta = model.predict(
                     input_img, get_theta=True)
                 # scaling and translation
-                save_mesh(img, img_path, split, proc_param, joints[0], verts[0], cams[0])
-
-def save_mesh(img, img_path, split, proc_param, joints, verts, cam):
+                print(time.time()-since)
+                save_mesh(img, img_path, split, proc_param, joints[0], verts[0], cams[0], faces)
+                count +=1
+                if count == 500:
+                    break
+def save_mesh(img, img_path, split, proc_param, joints, verts, cam, faces):
     cam_for_render, vert_3d, joints_orig = vis_util.get_original(
         proc_param, verts, cam, joints, img_size=img.shape[:2])
     cam_for_render, vert_shifted = cam, verts
@@ -162,8 +169,6 @@ def save_mesh(img, img_path, split, proc_param, joints, verts, cam):
     vert_2d = verts[:, :2] + camera[:, 1:]
     vert_2d = vert_2d * camera[0,0]
     img_copy = img.copy()
-    face_path = './src/tf_smpl/smpl_faces.npy'
-    faces = np.load(face_path)
     obj_mesh_name = '../3D-Person-reID/3DMarket+bg/%s/%s/%s.obj'%( split, os.path.basename(os.path.dirname(img_path)), os.path.basename(img_path) )
     store_dir = os.path.dirname(obj_mesh_name)
     if not os.path.exists(os.path.dirname(store_dir)):

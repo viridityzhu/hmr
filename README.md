@@ -2,6 +2,15 @@
 
 I modified code from https://github.com/akanazawa/hmr . I added 2D-to-3D color mapping for my human matching paper at [Here](https://arxiv.org/abs/2006.04569), and you are welcomed to check out them.  
 
+By defualt, I removed mesh (triangle faces) information for fast data loading.
+If you want to preserve the mesh and visualize the 3D data, you could use the
+```bash
+python demo_bg.py --img_path ../Market/pytorch/gallery/1026/1026_c1s6_038571_06.jpg #please change to your image path
+```
+The output 3D data is `test.obj`. You could use `open3d` to visualize it.
+If you has one MacBook, you could visualize the `1026_c1s6_038571_06.jpg.obj` in the folder.
+![](https://github.com/layumi/hmr/blob/master/hmr.png)
+
 The original paper is 
 
 Angjoo Kanazawa, Michael J. Black, David W. Jacobs, Jitendra Malik 'End-to-end Recovery of Human Shape and Pose' CVPR 2018
@@ -30,12 +39,12 @@ pip install -r requirements.txt
 With GPU:
 ```
 conda install tensorflow-gpu==1.11.0
-pip instal open3d 
+pip install open3d 
 ```
 Without GPU:
 ```
 conda install tensorflow==1.11.0
-pip instal open3d 
+pip install open3d 
 ```
 
 ### Generate Market / Duke / MSMT
@@ -50,15 +59,6 @@ baseline without background
 ```bash
 python generate_3DMarket.py
 ```
-
-By defualt, I removed mesh information for fast data loading. 
-If you want to preserve the mesh and visualize the 3D data, you could use the 
-```bash
-python demo_bg.py --img_path ../Market/pytorch/gallery/1026/1026_c1s6_038571_06.jpg
-```
-The output 3D data is `test.obj`. You could use `open3d` to visualize it. 
-If you has one MacBook, you could visualize the `test.obj` in the folder. 
-![](https://github.com/layumi/hmr/blob/master/hmr.png)
 
 ### Demo
 

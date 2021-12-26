@@ -100,7 +100,11 @@ def visualize(img, proc_param, joints, verts, cam):
 
 
 def preprocess_image(img_path, json_path=None, fliplr=False):
-    img = io.imread(img_path)
+    #img = io.imread(img_path)
+    img = Image.open(img_path)
+    #img = img.resize((128,256))
+    img = img.resize((64, 128))
+    img = np.array(img)
     if img.shape[2] == 4:
         img = img[:, :, :3]
 

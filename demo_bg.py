@@ -240,8 +240,8 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
         for i in range(w):
             for j in range(h):
                 vx, vy = i, j
-                if foreground_index_2d[i,j] < 99999:
-                    continue
+                #if foreground_index_2d[i,j] < 99999:
+                #    continue
                 if w<h:
                     vx = vx + h/2 - w/2
                 else:

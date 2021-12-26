@@ -137,7 +137,7 @@ def main(dir_path, json_path=None):
     sess = tf.Session()
     model = RunModel(config, sess=sess)
     #for split in ['train', 'train_all', 'val', 'gallery', 'query']:
-    for split in ['gallery']:
+    for split in ['val', 'train']:
         for root, dirs, files in os.walk(dir_path+split, topdown=True):
             for img_path in files:
                 if not img_path[-3:]=='jpg':
