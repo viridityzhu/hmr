@@ -1,5 +1,7 @@
 models/
 logs*/
+3DMarket_hmr_mask/
+3DMarket/
 *.json
 *.DS_Store
 *.pyc
