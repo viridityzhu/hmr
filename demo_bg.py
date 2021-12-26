@@ -177,6 +177,7 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
     foreground_index_2d = np.zeros((w,h))+99999
     foreground_value_2d = np.zeros((w,h))+99999
     background = np.zeros((w,h))
+    mask = np.zeros((w,h))
     index = 6891
     with open(obj_mesh_name, 'w') as fp:
         w, h, _ = img.shape
@@ -194,10 +195,25 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
                 y = int(round(y - w/2 + h/2))
             x = max(0, min(x, w-1))
             y = max(0, min(y, h-1))
+            mask[x, y] = 1
+            # for every pixel, we only save the closet vertex (smallest depth)
             if z < foreground_value_2d[x,y]:
                 foreground_index_2d[x,y] = i
                 foreground_value_2d[x,y] = z
-        #s smooth
+
+        # check the hole 
+        for t in range(3):
+            for i in range(1,w-1):
+                for j in range(1,h-1):
+                    if mask[i,j] == 1:
+                        continue
+                    sum = mask[i-1,j-1] + mask[i,j-1] + mask[i-1,j] + mask[i-1,j+1] \
+                         +mask[i+1,j+1] + mask[i,j+1] + mask[i+1,j] + mask[i+1,j-1]
+                    if sum >= 6: 
+                        mask[i, j] = 1
+        mask = Image.fromarray(np.uint8(mask*255))
+        mask.save('%s_mask.png'%os.path.basename(img_path))
+        # foreground color mapping to the human back
         z_max = max(vert_3d[:, 2])- min(vert_3d[:, 2])
         for t in range(10):
             for i in range(1,w-1):
@@ -206,11 +222,11 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
                     if foreground_index_2d[i-1,j] != 999999 and foreground_value_2d[i-1,j]>center+0.05:
                          foreground_index_2d[i-1,j] = 999999
                          foreground_value_2d[i-1,j] = 999999
-                         print('find you')
+                         #print('find abnormal mapping. remove')
                     if foreground_index_2d[i,j-1] != 999999 and foreground_value_2d[i,j-1]>center+0.05:
                          foreground_index_2d[i,j-1] = 999999
                          foreground_value_2d[i,j-1] = 999999
-                         print('find you')
+                         #print('find abnormal mapping. remove')
         # Draw Color
         count = 0
         in_selected = np.linspace(0, 128*64-1, num= round(128*64*percent), dtype=int)
@@ -226,7 +242,7 @@ def save_mesh(img, img_path, proc_param, joints, verts, cam):
                 y = int(round(y - w/2 + h/2))
             x = max(0, min(x, w-1))
             y = max(0, min(y, h-1))
-            if i == foreground_index_2d[x,y]: 
+            if i == foreground_index_2d[x,y]: # if is the matched closet vertex draw color. 
                 c = img[x, y, :]/255.0
                 img_copy[x,y,:] = 0
                 count +=1

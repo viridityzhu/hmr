@@ -154,8 +154,8 @@ def main(dir_path, json_path=None):
                 print(time.time()-since)
                 save_mesh(img, img_path, split, proc_param, joints[0], verts[0], cams[0], faces)
                 count +=1
-                if count == 500:
-                    break
+                #if count == 500:
+                #    break
 def save_mesh(img, img_path, split, proc_param, joints, verts, cam, faces):
     cam_for_render, vert_3d, joints_orig = vis_util.get_original(
         proc_param, verts, cam, joints, img_size=img.shape[:2])
