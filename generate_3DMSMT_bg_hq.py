@@ -24,9 +24,10 @@ from absl import flags
 import numpy as np
 
 import skimage.io as io
+from skimage.transform import resize
 import tensorflow as tf
 import os
-import time
+
 from PIL import Image
 from src.util import renderer as vis_util
 from src.util import image as img_util
@@ -35,7 +36,7 @@ from src.util import openpose as op_util
 import src.config
 from src.RunModel import RunModel
 
-flags.DEFINE_string('market_path', '../Market/pytorch/', 'Image to run')
+flags.DEFINE_string('market_path', '../MSMT/pytorch/', 'Image to run')
 flags.DEFINE_string(
     'json_path', None,
     'If specified, uses the openpose output to crop the image.')
@@ -100,7 +101,12 @@ def visualize(img, proc_param, joints, verts, cam):
 
 
 def preprocess_image(img_path, json_path=None):
-    img = io.imread(img_path)
+    #img = io.imread(img_path)
+    #img = Image.fromarray(img)
+    img = Image.open(img_path)
+    img = img.resize((128,256))
+    img = np.array(img)
+    #img = resize(img, (128 , 64))
     if img.shape[2] == 4:
         img = img[:, :, :3]
 
@@ -126,14 +132,12 @@ def preprocess_image(img_path, json_path=None):
 
 
 def main(dir_path, json_path=None):
-    if not os.path.exists('../3D-Person-reID/3DMarket+bg'):
-        os.mkdir('../3D-Person-reID/3DMarket+bg')
+    if not os.path.exists('../3D-Person-reID/3DMSMT+bg2'):
+        os.mkdir('../3D-Person-reID/3DMSMT+bg2')
     sess = tf.Session()
     model = RunModel(config, sess=sess)
-    face_path = './src/tf_smpl/smpl_faces.npy'
-    faces = np.load(face_path)
-    count = 0 
-    for split in ['train', 'train_all', 'val', 'gallery', 'query']:
+    #for split in ['train', 'train_all', 'val', 'gallery', 'query']:
+    for split in ['gallery']:
         for root, dirs, files in os.walk(dir_path+split, topdown=True):
             for img_path in files:
                 if not img_path[-3:]=='jpg':
@@ -147,16 +151,12 @@ def main(dir_path, json_path=None):
                 # where camera is 3D [s, tx, ty]
                 # pose is 72D vector holding the rotation of 24 joints of SMPL in axis angle format
                 # shape is 10D shape coefficients of SMPL
-                since = time.time()
                 joints, verts, cams, joints3d, theta = model.predict(
                     input_img, get_theta=True)
                 # scaling and translation
-                print(time.time()-since)
-                save_mesh(img, img_path, split, proc_param, joints[0], verts[0], cams[0], faces)
-                count +=1
-                #if count == 100:
-                #    break
-def save_mesh(img, img_path, split, proc_param, joints, verts, cam, faces):
+                save_mesh(img, img_path, split, proc_param, joints[0], verts[0], cams[0])
+
+def save_mesh(img, img_path, split, proc_param, joints, verts, cam):
     cam_for_render, vert_3d, joints_orig = vis_util.get_original(
         proc_param, verts, cam, joints, img_size=img.shape[:2])
     cam_for_render, vert_shifted = cam, verts
@@ -169,7 +169,9 @@ def save_mesh(img, img_path, split, proc_param, joints, verts, cam, faces):
     vert_2d = verts[:, :2] + camera[:, 1:]
     vert_2d = vert_2d * camera[0,0]
     img_copy = img.copy()
-    obj_mesh_name = '../3D-Person-reID/3DMarket+bg/%s/%s/%s.obj'%( split, os.path.basename(os.path.dirname(img_path)), os.path.basename(img_path) )
+    face_path = './src/tf_smpl/smpl_faces.npy'
+    faces = np.load(face_path)
+    obj_mesh_name = '../3D-Person-reID/3DMSMT+bg2/%s/%s/%s.obj'%( split, os.path.basename(os.path.dirname(img_path)), os.path.basename(img_path) )
     store_dir = os.path.dirname(obj_mesh_name)
     if not os.path.exists(os.path.dirname(store_dir)):
         os.mkdir(os.path.dirname(store_dir))

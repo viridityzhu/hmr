@@ -126,16 +126,18 @@ def preprocess_image(img_path, json_path=None):
 
 
 def main(dir_path, json_path=None):
-    if not os.path.exists('../3D-Person-reID/3DMarket+bg'):
-        os.mkdir('../3D-Person-reID/3DMarket+bg')
+    if not os.path.exists('./3DMarket_bodymesh'):
+        os.mkdir('./3DMarket_bodymesh')
     sess = tf.Session()
     model = RunModel(config, sess=sess)
     face_path = './src/tf_smpl/smpl_faces.npy'
     faces = np.load(face_path)
     count = 0 
-    for split in ['train', 'train_all', 'val', 'gallery', 'query']:
+    #for split in ['train', 'train_all', 'val', 'gallery', 'query']:
+    for split in ['train', 'train_all']:
         for root, dirs, files in os.walk(dir_path+split, topdown=True):
             for img_path in files:
+                count +=1
                 if not img_path[-3:]=='jpg':
                     continue 
                 img_path = root +'/' + img_path
@@ -153,9 +155,8 @@ def main(dir_path, json_path=None):
                 # scaling and translation
                 print(time.time()-since)
                 save_mesh(img, img_path, split, proc_param, joints[0], verts[0], cams[0], faces)
-                count +=1
-                #if count == 100:
-                #    break
+
+
 def save_mesh(img, img_path, split, proc_param, joints, verts, cam, faces):
     cam_for_render, vert_3d, joints_orig = vis_util.get_original(
         proc_param, verts, cam, joints, img_size=img.shape[:2])
@@ -169,7 +170,7 @@ def save_mesh(img, img_path, split, proc_param, joints, verts, cam, faces):
     vert_2d = verts[:, :2] + camera[:, 1:]
     vert_2d = vert_2d * camera[0,0]
     img_copy = img.copy()
-    obj_mesh_name = '../3D-Person-reID/3DMarket+bg/%s/%s/%s.obj'%( split, os.path.basename(os.path.dirname(img_path)), os.path.basename(img_path) )
+    obj_mesh_name = './3DMarket_bodymesh/%s/%s/%s.obj'%( split, os.path.basename(os.path.dirname(img_path)), os.path.basename(img_path) )
     store_dir = os.path.dirname(obj_mesh_name)
     if not os.path.exists(os.path.dirname(store_dir)):
         os.mkdir(os.path.dirname(store_dir))
@@ -182,85 +183,15 @@ def save_mesh(img, img_path, split, proc_param, joints, verts, cam, faces):
     with open(obj_mesh_name, 'w') as fp:
         w, h, _ = img.shape
         imgsize = max(w,h)
-        # Decide Forground
-        for i in range(vert_2d.shape[0]):
-            v2 = vert_2d[i,:]
-            v3 = vert_3d[i,:]
-            z = v3[2]
-            x = int(round( (v2[1]+1)*0.5*imgsize ))
-            y = int(round( (v2[0]+1)*0.5*imgsize ))
-            if w<h:
-                x = int(round(x -h/2 + w/2))
-            else:
-                y = int(round(y - w/2 + h/2))
-            x = max(0, min(x, w-1))
-            y = max(0, min(y, h-1))
-            if z < foreground_value_2d[x,y]:
-                foreground_index_2d[x,y] = i
-                foreground_value_2d[x,y] = z
-        #s smooth
-        z_max = max(vert_3d[:, 2])- min(vert_3d[:, 2])
-        for t in range(10):
-            for i in range(1,w-1):
-                for j in range(1,h-1):
-                    center= foreground_value_2d[i,j]
-                    if foreground_index_2d[i-1,j] != 999999 and foreground_value_2d[i-1,j]>center+0.05:
-                         foreground_index_2d[i-1,j] = 999999
-                         foreground_value_2d[i-1,j] = 999999
-                    if foreground_index_2d[i,j-1] != 999999 and foreground_value_2d[i,j-1]>center+0.05:
-                         foreground_index_2d[i,j-1] = 999999
-                         foreground_value_2d[i,j-1] = 999999
         # Draw Color
         for i in range(vert_2d.shape[0]):
             v2 = vert_2d[i,:]
             v3 = verts[i,:]
-            z = v3[2]
-            x = int(round( (v2[1]+1)*0.5*imgsize ))
-            y = int(round( (v2[0]+1)*0.5*imgsize ))
-            if w<h:
-                x = int(round(x -h/2 + w/2))
-            else:
-                y = int(round(y - w/2 + h/2))
-            x = max(0, min(x, w-1))
-            y = max(0, min(y, h-1))
-            if i == foreground_index_2d[x,y]: 
-                c = img[x, y, :]/255.0
-                img_copy[x,y,:] = 0
-            else:
-                c = [1,1,1]
-                continue 
-            fp.write( 'v %f %f %f %f %f %f\n' % ( v3[0], v3[1], v3[2], c[0], c[1], c[2]) )
-        # 2D to 3D mapping
-        for i in range(w):
-            for j in range(h):
-                vx, vy = i, j
-                if foreground_index_2d[i,j] < 99999:
-                    continue
-                if w<h:
-                    vx = vx + h/2 - w/2
-                else:
-                    vy = vy + w/2 - h/2
-                vx = vx/imgsize *2 - 1 
-                vy = vy/imgsize *2 - 1 
-                
-                vy /= camera[0,0] 
-                vy -= camera[:, 1]
-                vx /= camera[0,0] 
-                vx -= camera[:, 2]
-                vz = np.mean(verts[:,2])
-                c = img[i,j,:]/255.0
-                fp.write( 'v %f %f %f %f %f %f\n' % ( vy, vx, vz, c[0], c[1], c[2]) )
-                background[i,j] = index
-                index +=1
+            fp.write( 'v %f %f %f\n' % ( v3[0], v3[1], v3[2]) )
 
         for f in faces: # Faces are 1-based, not 0-based in obj files
             fp.write( 'f %d %d %d\n' %  (f[0] + 1, f[1] + 1, f[2] + 1) )
-            break  # skip for small file
-        #count = 0
-        #for i in range(1,w):
-        #    for j in range(1,h): 
-        #        fp.write( 'f %d %d %d %d\n' % (background[i,j], background[i-1,j] ,background[i,j-1] , background[i-1, j-1]))
-
+            break  # skip for saving space . small file
 
 if __name__ == '__main__':
     config = flags.FLAGS
