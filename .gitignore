@@ -1,5 +1,6 @@
 models/
 logs*/
+3DATR_hmr_mask/
 3DMarket_hmr_mask/
 3DMarket/
 *.json
