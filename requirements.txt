@@ -6,6 +6,6 @@ opendr
 matplotlib
 scikit-image
 deepdish>=0.3
-opencv-python
+opencv-python==4.2.0.32
 absl-py
 ipdb

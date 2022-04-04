@@ -28,8 +28,8 @@ class RunModel(object):
             )
         if not exists(config.load_path + '.index'):
             print('%s doesnt exist..' % config.load_path)
-            import ipdb
-            ipdb.set_trace()
+            #import ipdb
+            #ipdb.set_trace()
 
         # Data
         self.batch_size = config.batch_size
