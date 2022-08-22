@@ -149,12 +149,16 @@ def main(dir_path, json_path=None):
                 if not img_path[-3:]=='jpg':
                     continue 
                 img_path = root +'/' + img_path
+                obj_mesh_name = './3DDancing_hmr_bodymesh/{}/hmr_mesh/{}/{}.obj'.format(img_path.split('/')[-4], img_path.split('/')[-2], os.path.basename(img_path) )
+                if os.path.exists(obj_mesh_name):
+                    # print('Already done. pass')
+                    continue
                 print(img_path)
                 try:
                     input_img, proc_param, img = preprocess_image(img_path, json_path)
                 except Exception as e:
                     with open('exceptions.log', 'a+') as f:
-                        f.write(img_path + '\n' + e + '\n')
+                        f.write(img_path + '\n' + repr(e) + '\n')
                     print(e)
                     continue
 
@@ -178,6 +182,7 @@ def main(dir_path, json_path=None):
 def save_mesh(img, img_path, split, proc_param, joints, verts, cam, faces):
     cam_for_render, vert_3d, joints_orig = vis_util.get_original(
         proc_param, verts, cam, joints, img_size=img.shape[:2])
+    obj_mesh_name = './3DDancing_hmr_bodymesh/{}/hmr_mesh/{}/{}.obj'.format(img_path.split('/')[-4], img_path.split('/')[-2], os.path.basename(img_path) )
     cam_for_render, vert_shifted = cam, verts
     #print(proc_param)
     #print(vert_shifted)
@@ -188,7 +193,6 @@ def save_mesh(img, img_path, split, proc_param, joints, verts, cam, faces):
     vert_2d = verts[:, :2] + camera[:, 1:]
     vert_2d = vert_2d * camera[0,0]
     # img_copy = img.copy()
-    obj_mesh_name = './3DDancing_hmr_bodymesh/{}/hmr_mesh/{}/{}.png'.format(img_path.split('/')[-4], img_path.split('/')[-2], os.path.basename(img_path) )
     store_dir = os.path.dirname(obj_mesh_name)
     if not os.path.exists(os.path.dirname(store_dir)):
         os.mkdir(os.path.dirname(store_dir))
