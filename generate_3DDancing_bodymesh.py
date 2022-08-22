@@ -28,6 +28,7 @@ import tensorflow as tf
 import os
 import cv2
 import time
+from tqdm import tqdm
 from PIL import Image
 from src.util import renderer as vis_util
 from src.util import image as img_util
@@ -109,7 +110,7 @@ def preprocess_image(img_path, json_path=None):
 
     if json_path is None:
         if np.max(img.shape[:2]) != config.img_size:
-            print('Resizing so the max image size is %d..' % config.img_size)
+            # print('Resizing so the max image size is %d..' % config.img_size)
             scale = (float(config.img_size) / np.max(img.shape[:2]))
         else:
             scale = 1.
@@ -142,7 +143,7 @@ def main(dir_path, json_path=None):
             os.mkdir('./3DDancing_hmr_bodymesh/' + split)
         for root, dirs, files in os.walk(dir_path+split, topdown=True):
             print('got images', len(files), 'in', root)
-            for img_path in files:
+            for img_path in tqdm(files):
                 # count +=1
                 # if not count % 2 ==1:
                 #     continue
@@ -153,7 +154,7 @@ def main(dir_path, json_path=None):
                 if os.path.exists(obj_mesh_name):
                     # print('Already done. pass')
                     continue
-                print(img_path)
+                # print(img_path)
                 try:
                     input_img, proc_param, img = preprocess_image(img_path, json_path)
                 except Exception as e:
@@ -168,11 +169,11 @@ def main(dir_path, json_path=None):
                 # where camera is 3D [s, tx, ty]
                 # pose is 72D vector holding the rotation of 24 joints of SMPL in axis angle format
                 # shape is 10D shape coefficients of SMPL
-                since = time.time()
+                # since = time.time()
                 joints, verts, cams, joints3d, theta = model.predict(
                     input_img, get_theta=True)
                 # scaling and translation
-                print(time.time()-since)
+                # print(time.time()-since)
                 # w, h, _ = img.shape
                 # img = cv2.resize(img, dsize=(h//8, w//8), interpolation=cv2.INTER_NEAREST) # for filling the hole...
                 save_mesh(img, img_path, split, proc_param, joints[0], verts[0], cams[0], faces)
